@@ -96,3 +96,9 @@ class logistic_regression:
         else:
             self.cost_training = None
             
+    def predict(self, X):
+        ''' use provided features X to predict classification
+        returns classification (threshold = 0.5), and probabilities of classification=1'''
+        h = self.sigmoid(np.dot(X, self.theta))
+        classification = np.round(h)
+        return classification,h
