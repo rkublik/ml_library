@@ -99,6 +99,8 @@ class logistic_regression:
     def predict(self, X):
         ''' use provided features X to predict classification
         returns classification (threshold = 0.5), and probabilities of classification=1'''
+        X = np.hstack((np.ones((X.shape[0],1)), X))
+        
         h = self.sigmoid(np.dot(X, self.theta))
         classification = np.round(h)
         return classification,h
