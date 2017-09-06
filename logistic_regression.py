@@ -14,6 +14,7 @@ class logistic_regression:
         theta : parameters for logistic regression
         alpha : gradient descent learning rate
         lbda: regularization constant
+        cost_training: stores learning curve data
     """
     theta = None
     cost_training = None
@@ -38,7 +39,7 @@ class logistic_regression:
         except TypeError:
             y = y*np.ones((1))
             m = 1.0
-
+        print X, theta
         h = self.sigmoid(np.dot(X,theta))
         J = 1/m * (np.dot(-y.T,np.log(h)) - np.dot((1-y).T,np.log(1-h))) + lbda/(2*m) * np.dot(theta[1:].T,theta[1:])
         return float(J)
