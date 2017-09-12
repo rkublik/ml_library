@@ -20,29 +20,29 @@ class Neuron():
     
 class Layer():
     def __init__(self, network,number_of_neurons, number_of_neurons_in_widest_layer):
-        self.vertical_distance_between_layers = 6
-        self.horizontal_distance_between_neurons = 2
+        self.horizontal_distance_between_layers = 6
+        self.vertical_distance_between_neurons = 2
         self.neuron_radius = 0.5
         self.number_of_neurons_in_widest_layer = number_of_neurons_in_widest_layer
         self.previous_layer = self.__get_previous_layer(network)
-        self.y = self.__calculate_layer_y_position()
+        self.x = self.__calculate_layer_x_position()
         self.neurons = self.__initialize_neurons(number_of_neurons)
         
     def __initialize_neurons(self, number_of_neurons):
         neurons = []
-        x = self.__calculate_left_margin_so_layer_is_centered(number_of_neurons)
+        y = self.__calculate_bottom_margin_so_layer_is_centered(number_of_neurons)
         for iteration in xrange(number_of_neurons):
-            neuron = Neuron(x, self.y)
+            neuron = Neuron(self.x, y)
             neurons.append(neuron)
-            x+= self.horizontal_distance_between_neurons
+            y+= self.vertical_distance_between_neurons
         return neurons
     
-    def __calculate_left_margin_so_layer_is_centered(self, number_of_neurons):
-        return self.horizontal_distance_between_neurons * (self.number_of_neurons_in_widest_layer - number_of_neurons) / 2
+    def __calculate_bottom_margin_so_layer_is_centered(self, number_of_neurons):
+        return self.vertical_distance_between_neurons * (self.number_of_neurons_in_widest_layer - number_of_neurons) / 2
     
-    def __calculate_layer_y_position(self):
+    def __calculate_layer_x_position(self):
         if self.previous_layer:
-            return self.previous_layer.y + self.vertical_distance_between_layers
+            return self.previous_layer.x + self.horizontal_distance_between_layers
         else:
             return 0
         
@@ -53,9 +53,11 @@ class Layer():
             return None
         
     def __line_between_two_neurons(self, neuron1, neuron2):
-        angle = atan((neuron2.x - neuron1.x)/float(neuron2.y - neuron1.y))
-        x_adjustment = self.neuron_radius * sin(angle)
-        y_adjustment = self.neuron_radius * cos(angle)
+        angle = atan((neuron2.y - neuron1.y)/float(neuron2.x - neuron1.x))
+        
+        x_adjustment = self.neuron_radius * cos(angle)
+        y_adjustment = self.neuron_radius * sin(angle)
+
         line = plt.Line2D((neuron1.x - x_adjustment, neuron2.x + x_adjustment),
                           (neuron1.y - y_adjustment, neuron2.y + y_adjustment))
         plt.gca().add_line(line)
@@ -67,15 +69,14 @@ class Layer():
                 for previous_layer_neuron in self.previous_layer.neurons:
                     self.__line_between_two_neurons(neuron, previous_layer_neuron)
                     
-        # Write test:
-        x_text = self.number_of_neurons_in_widest_layer * self.horizontal_distance_between_neurons
+        # Write text:
         if layerType == 0:
-            plt.text(x_text, self.y, 'Input Layer', fontsize = 12)
+            plt.text(self.x, -1, 'Input Layer', fontsize = 12, rotation = -45)
         elif layerType == -1:
-            plt.text(x_text, self.y, 'Output Layer', fontsize = 12)
+            plt.text(self.x, -1, 'Output Layer', fontsize = 12, rotation = -45)
         else:
-            plt.text(x_text, self.y, 'Hidden Layer %d' % layerType, fontsize = 12)
-            
+            plt.text(self.x, -1, 'Hidden Layer %d' % layerType, fontsize = 12, rotation = -45)
+           
             
 class NeuralNetwork():
     def __init__(self, number_of_neurons_in_widest_layer):
