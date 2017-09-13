@@ -88,25 +88,35 @@ class NeuralNetwork():
         layer = Layer(self, number_of_neurons, self.number_of_neurons_in_widest_layer)
         self.layers.append(layer)
         
-    def draw(self, plot_title = "Neural Network Architecture"):
-        plt.figure()
+    def draw(self, plot_title = "Neural Network Architecture", fig = None):
+        if fig is None:
+            fig = plt.figure()
+        else: 
+            plt.set_current_figure(fig)
+            
         for i in range(len(self.layers)):
             layer = self.layers[i]
             if i == len(self.layers)-1:
                 i = -1
             layer.draw(i)
-        plt.axis('scaled')
+        plt.axis("tight")
         plt.axis('off')
         plt.title(plot_title, fontsize = 15)
         plt.show()
+        return fig
         
 class DrawNN():
     def __init__(self, neural_network):
         self.neural_network = neural_network
         
-    def draw(self, title = "Neural Network Architecture"):
+    def draw(self, title = "Neural Network Architecture", fig = None):
         widest_layer = max(self.neural_network)
         network = NeuralNetwork(widest_layer)
         for l in self.neural_network:
             network.add_layer(l)
-        network.draw(title)
+        f = network.draw(title, fig)
+        
+        
+if __name__ == "__main__":
+    network = DrawNN([20,14,8,10,10,9,15])
+    network.draw()
