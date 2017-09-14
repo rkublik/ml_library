@@ -185,7 +185,6 @@ class PredictionTestCases(unittest.TestCase):
         
         nnet.train(data['X'], data['y'], lmbda = 0.001)
         pred = nnet.predict(data['X'])
-        print np.mean(pred == data['y'].flatten())*100
         self.assertTrue(np.mean(pred == data['y'].flatten())*100>97)
         
         
@@ -196,10 +195,7 @@ class PredictionTestCases(unittest.TestCase):
         nnet = nn(layers)
         
         nnet.train(data['X'], data['y'], lmbda = 0.001)
-        pred = nnet.predict(data['X'])
-        
-        print np.mean(pred == data['y'].flatten())*100
-        
+        pred = nnet.predict(data['X'])        
         self.assertTrue(np.mean(pred == data['y'].flatten())*100>97)
         
   
