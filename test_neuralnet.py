@@ -188,7 +188,7 @@ class PredictionTestCases(unittest.TestCase):
         self.assertTrue(np.mean(pred == data['y'].flatten())*100>97)
         
         
-    def predict_2_hidden_layers(self):
+    def test_predict_2_hidden_layers(self):
         data = sio.loadmat('test_data/ex4data1.mat')
         data['y'] = data['y']-1 # convert to index starting at 0.
         layers = (400,25,25,10)
