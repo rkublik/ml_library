@@ -121,8 +121,20 @@ class CostFunctionTestCases(unittest.TestCase):
        
         self.assertAlmostEqual(J, 0.383770, places = 6)
          
-    def test_roll_unroll(self):
+    def test_unroll_roll(self):
         layers = (3, 5, 3)
+        nnet = nn(layers)
+        weights = nnet.weights
+        unrolled = nnet.unroll(nnet.weights)
+        rolled = nnet.roll(unrolled)
+        
+        for r in range(len(rolled)):
+            self.assertEqual(rolled[r].shape, weights[r].shape)
+            for i in range(rolled[r].size):
+                self.assertAlmostEqual(rolled[r].flatten()[i], weights[r].flatten()[i])
+
+    def test_unroll_roll_2_hidden_layers(self):
+        layers = (3, 5, 4, 3)
         nnet = nn(layers)
         weights = nnet.weights
         unrolled = nnet.unroll(nnet.weights)
@@ -162,7 +174,7 @@ class CostFunctionTestCases(unittest.TestCase):
         self.assertAlmostEqual(diff, 0, places = 9)
         
         
-        
+ 
 class PredictionTestCases(unittest.TestCase):
     
     def test_predict_ML(self):
@@ -173,12 +185,24 @@ class PredictionTestCases(unittest.TestCase):
         
         nnet.train(data['X'], data['y'], lmbda = 0.001)
         pred = nnet.predict(data['X'])
-        
-        #print np.mean(pred == data['y'].flatten())*100
-        
+        print np.mean(pred == data['y'].flatten())*100
         self.assertTrue(np.mean(pred == data['y'].flatten())*100>97)
         
         
+    def predict_2_hidden_layers(self):
+        data = sio.loadmat('test_data/ex4data1.mat')
+        data['y'] = data['y']-1 # convert to index starting at 0.
+        layers = (400,25,25,10)
+        nnet = nn(layers)
+        
+        nnet.train(data['X'], data['y'], lmbda = 0.001)
+        pred = nnet.predict(data['X'])
+        
+        print np.mean(pred == data['y'].flatten())*100
+        
+        self.assertTrue(np.mean(pred == data['y'].flatten())*100>97)
+        
+  
         
 ''' utility functions '''
 def debugInitializeWeights(output_size, input_size):

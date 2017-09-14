@@ -16,17 +16,17 @@ class neural_net:
     """
     layers = None
     weights = None
+
     def __init__(self, layers, epsilon = 0.12):
         """Return a neural_network object"""
         self.layers = layers
         for l in range(len(layers)-1):
             w = np.random.uniform(0, epsilon,(layers[l+1], layers[l] + 1))
             if self.weights is None:
-                self.weights = w
+                self.weights = [w]
             else:
-                self.weights = (self.weights, w)
-        self.weights = list(self.weights)
-        
+                self.weights.append(w)
+                
         
     def sigmoid(self, z):
         """ computes sigmoid of input z """
