@@ -144,6 +144,8 @@ class CostFunctionTestCases(unittest.TestCase):
             self.assertEqual(rolled[r].shape, weights[r].shape)
             for i in range(rolled[r].size):
                 self.assertAlmostEqual(rolled[r].flatten()[i], weights[r].flatten()[i])
+                
+                                
         
     def test_cost_function_gradients(self):
         """ Check implementation of cost function gradients, bu comparing to 
@@ -188,7 +190,7 @@ class PredictionTestCases(unittest.TestCase):
         self.assertTrue(np.mean(pred == data['y'].flatten())*100>97)
         
         
-    def test_predict_2_hidden_layers(self):
+    def __test_predict_2_hidden_layers(self):
         data = sio.loadmat('test_data/ex4data1.mat')
         data['y'] = data['y']-1 # convert to index starting at 0.
         layers = (400,25,25,10)
@@ -198,6 +200,17 @@ class PredictionTestCases(unittest.TestCase):
         pred = nnet.predict(data['X'])        
         self.assertTrue(np.mean(pred == data['y'].flatten())*100>97)
         
+    def __test_predict_large_input(self):
+        data = sio.loadmat('test_data/ex4data1.mat')
+        data['y'] = data['y']-1 # convert to index starting at 0.
+        layers = (784,25,10)
+        nnet = nn(layers)
+        
+        X = np.random.rand(data['y'].size, 784)
+        nnet.train(X, data['y'], lmbda = 0.001)
+        pred = nnet.predict(X) 
+        print np.mean(pred == data['y'].flatten())*100
+        #self.assertTrue(np.mean(pred == data['y'].flatten())*100>97)
   
         
 ''' utility functions '''
@@ -220,7 +233,7 @@ def computeNumericalGradient(func, theta):
         perturb[p] = 0
     return numgrad
         
-        
+
 
 if __name__=="__main__":
     unittest.main()

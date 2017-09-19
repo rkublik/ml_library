@@ -114,19 +114,42 @@ class neural_net:
             grads[g][:, 1:] = grads[g][:,1:] + lmbda/m * weights[g][:,1:]
             
         # unroll gradients
-        grad = grads[0].reshape((grads[0].size,1))
-        for i in range(1, len(grads)):
-            grad = np.vstack((grad, grads[i].reshape(grads[i].size,1)))
+        grad = self.unroll(grads)
+        
+        #grad = grads[0].reshape((grads[0].size,1))
+        #for i in range(1, len(grads)):
+        #    grad = np.vstack((grad, grads[i].reshape(grads[i].size,1)))
             
         return J, grad
     
+    def gradient_descent(self, X, y, lmbda = 0.01, alpha = 0.01, max_iter = 1500, tol = 1e-6):
+        cost = []
+        Jold = 1e1000
+        weights = self.unroll(self.weights)
+        for i in range(max_iter):
+            J, g = self.cost_function(weights, X, y, lmbda)
+            weights = weights - alpha * g
+            cost.append(J)
+            if np.abs(J - Jold) < tol:
+                break
+        self.weights = weights
+        self.cost_training = cost
+        
     def train(self, X, y, lmbda = 0.001):
         init_weights = self.unroll(self.weights)
-        params, feval, rc = optimize.fmin_tnc(lambda W: self.cost_function(W, X, y, lmbda), x0 = init_weights)
         
-        # store the weights
+        params, feval, rc = optimize.fmin_tnc(lambda W: self.cost_function(W, X, y, lmbda), x0 = init_weights)
         self.weights = self.roll(params)
-            
+        '''
+        res = optimize.minimize(lambda W: self.cost_function(W, X, y, lmbda), 
+                                x0 = init_weights, 
+                                method = 'CG',
+                                jac = True)
+        # store the weights
+        print res.x
+        self.weights = self.roll(res.x)
+        '''
+        
     def predict(self, X):
         """ return the index of the output layer with the largest value """
         h = X
