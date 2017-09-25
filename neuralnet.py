@@ -7,7 +7,7 @@ Created on Thu Aug 31 09:50:11 2017
 
 import numpy as np
 import scipy.optimize as optimize
-
+import matplotlib.pyplot as plt
 class neural_net:
     """ Implements a neural network, following Andrew Ng ML course
     
@@ -20,12 +20,7 @@ class neural_net:
     def __init__(self, layers, epsilon = 0.12):
         """Return a neural_network object"""
         self.layers = layers
-        for l in range(len(layers)-1):
-            w = np.random.uniform(0, epsilon,(layers[l+1], layers[l] + 1))
-            if self.weights is None:
-                self.weights = [w]
-            else:
-                self.weights.append(w)
+        self.weights = [np.random.randn(y, x+1) for x,y in zip(layers[:-1], layers[1:])] # list comprehension!
                 
         
     def sigmoid(self, z):
@@ -115,11 +110,7 @@ class neural_net:
             
         # unroll gradients
         grad = self.unroll(grads)
-        
-        #grad = grads[0].reshape((grads[0].size,1))
-        #for i in range(1, len(grads)):
-        #    grad = np.vstack((grad, grads[i].reshape(grads[i].size,1)))
-            
+
         return J, grad
     
     def gradient_descent(self, X, y, lmbda = 0.01, alpha = 0.01, max_iter = 1500, tol = 1e-6):
@@ -134,21 +125,64 @@ class neural_net:
                 break
         self.weights = weights
         self.cost_training = cost
-        
-    def train(self, X, y, lmbda = 0.001):
-        init_weights = self.unroll(self.weights)
-        
-        params, feval, rc = optimize.fmin_tnc(lambda W: self.cost_function(W, X, y, lmbda), x0 = init_weights)
-        self.weights = self.roll(params)
+
+    def stochastic_gradient_descent(self, X, y, lmbda = 0.1, epochs = 1500, 
+                                    mini_batch_size = 10, eta = 0.50, tol = 1e-6,
+                                    test_data = None, verbose = False):
+        ''' train neural network using mini-batch stochastic gradient descent.
+        Adapted from : http://neuralnetworksanddeeplearning.com/chap1.html
+        X = training features
+        y = training labels
+        lmbda = regularization parameter
+        epochs = number of training epochs
+        mini_batch_size = number of samples in each mini batch
+        eta = learning rate
+        test_data = if supplied as a dictionary {X:, y:}, the network will be tested using this data at the end of each epoch
+                    default = None
         '''
-        res = optimize.minimize(lambda W: self.cost_function(W, X, y, lmbda), 
-                                x0 = init_weights, 
-                                method = 'CG',
-                                jac = True)
-        # store the weights
-        print res.x
-        self.weights = self.roll(res.x)
-        '''
+        if test_data:
+            n_test = test_data['y'].size
+        n = X.shape[0]
+        cost = []
+        if mini_batch_size < 0:
+            mini_batch_size = X.shape[0]
+        for j in xrange(epochs):
+            idx = range(n)
+            np.random.shuffle(idx)
+            mini_batch_idx = [
+                    idx[k:k+mini_batch_size] 
+                    for k in xrange(0, n, mini_batch_size)]
+            for mini_batch in mini_batch_idx:
+                ecost = self.update_mini_batch(X[mini_batch,:], y[mini_batch], lmbda, eta)
+            cost.append(ecost)
+            if verbose:
+                if test_data:
+                    print "Epoch {0}. cv accuracy: {1}/{2}".format(j, self.evaluate(test_data['X'], test_data['y']), n_test)
+                else:
+                    print "Epoch {0}. Cost Function Value: {1}".format(j, cost[-1])
+            if len(cost) > 1 and abs(cost[-1] - cost[-2])<tol:
+                break
+        self.cost_training = cost
+                
+    def update_mini_batch(self, X, y, lmbda, eta):
+        weights = self.unroll(self.weights)
+        J,g = self.cost_function(weights, X, y, lmbda)
+        weights = weights - eta * g
+        self.weights = self.roll(weights)
+        return J
+
+        
+    def train(self, X, y, lmbda = 0.1, epochs = 1500, 
+              mini_batch_size = 10, eta = 0.50, tol = 1e-6,
+              test_data = None, verbose = False):
+        # init_weights = self.unroll(self.weights)
+        # 
+        # params, feval, rc = optimize.fmin_tnc(lambda W: self.cost_function(W, X, y, lmbda), x0 = init_weights)
+        # self.weights = self.roll(params)
+       
+        self.stochastic_gradient_descent(X, y, lmbda, epochs, mini_batch_size, 
+                                         eta, tol, test_data, verbose)
+        
         
     def predict(self, X):
         """ return the index of the output layer with the largest value """
@@ -158,4 +192,11 @@ class neural_net:
             h = self.sigmoid(np.dot(z,self.weights[i].T))
         return np.argmax(h, axis = 1)
     
+    def evaluate(self, X, y):
+        pred = self.predict(X)
+        return np.mean(pred == y)
+    
+    
+if __name__=="__main__":
+    import dev_test
     

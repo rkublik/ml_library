@@ -179,40 +179,106 @@ class CostFunctionTestCases(unittest.TestCase):
  
 class PredictionTestCases(unittest.TestCase):
     
-    def test_predict_ML(self):
+    def test_predict_ML_whole_set(self):
+        seed = 1
+        np.random.seed(seed)
         data = sio.loadmat('test_data/ex4data1.mat')
         data['y'] = data['y']-1 # convert to index starting at 0.
         layers = (400,25,10)
         nnet = nn(layers)
-        
-        nnet.train(data['X'], data['y'], lmbda = 0.001)
+        idx = range(data['X'].shape[0])
+        idx = np.random.choice(idx, size = 100, replace = False)
+        X = data['X'][idx,:]
+        y = data['y'][idx]
+        nnet.train(X, y, lmbda = 0.01,
+                   epochs = 150, mini_batch_size = 10,
+                   eta = 3.0, test_data = None, tol = 1e-6)
         pred = nnet.predict(data['X'])
-        self.assertTrue(np.mean(pred == data['y'].flatten())*100>97)
+        #print "ML_whole: {0}".format(np.mean(pred == data['y'].flatten()))
+        self.assertTrue(np.mean(pred == data['y'].flatten())*100>73)
         
+    def test_predict_ML_mini_batch_10(self):
+        seed = 1
+        np.random.seed(seed)
+        data = sio.loadmat('test_data/ex4data1.mat')
+        data['y'] = data['y']-1 # convert to index starting at 0.
+        layers = (400,25,10)
+        nnet = nn(layers)
+        idx = range(data['X'].shape[0])
+        idx = np.random.choice(idx, size = 100, replace = False)
         
-    def __test_predict_2_hidden_layers(self):
+        X = data['X'][idx,:]
+        y = data['y'][idx]
+        nnet.train(X, y, lmbda = 0.01,
+                   epochs = 150, mini_batch_size = 10,
+                   eta = 3.0, test_data = None, tol = 1e-6)
+        pred = nnet.predict(data['X'])
+
+        #print "ML_minibatch 10: {0}".format(np.mean(pred == data['y'].flatten()))
+
+        self.assertTrue(np.mean(pred == data['y'].flatten())*100>73)
+        
+    def test_predict_2_hidden_layers(self):
+        seed = 1
+        np.random.seed(seed)
         data = sio.loadmat('test_data/ex4data1.mat')
         data['y'] = data['y']-1 # convert to index starting at 0.
         layers = (400,25,25,10)
         nnet = nn(layers)
         
-        nnet.train(data['X'], data['y'], lmbda = 0.001)
-        pred = nnet.predict(data['X'])        
-        self.assertTrue(np.mean(pred == data['y'].flatten())*100>97)
+        idx = range(data['X'].shape[0])
+        idx = np.random.choice(idx, size = 100, replace = False)
         
-    def __test_predict_large_input(self):
-        data = sio.loadmat('test_data/ex4data1.mat')
-        data['y'] = data['y']-1 # convert to index starting at 0.
+        X = data['X'][idx,:]
+        y = data['y'][idx]
+        nnet.train(X, y, lmbda = 0.01,
+                   epochs = 150, mini_batch_size = -1,
+                   eta = 3.0, test_data = None, tol = 1e-6)
+        pred = nnet.predict(data['X'])
+        #print "ML_whole 2 hidden layers: {0}".format(np.mean(pred == data['y'].flatten()))
+
+        self.assertTrue(np.mean(pred == data['y'].flatten())*100>59)
+        
+    def test_predict_large_input_whole_set(self):
+        seed = 1
+        np.random.seed(seed)
+
+        data = np.loadtxt('test_data/train.csv', skiprows = 1, delimiter = ',')
         layers = (784,25,10)
         nnet = nn(layers)
         
-        X = np.random.rand(data['y'].size, 784)
-        nnet.train(X, data['y'], lmbda = 0.001)
-        pred = nnet.predict(X) 
-        print np.mean(pred == data['y'].flatten())*100
-        #self.assertTrue(np.mean(pred == data['y'].flatten())*100>97)
-  
+        X = np.array(data[:300,1:])
+        y = np.array(data[:300,0]).astype(int)
+        y = y.reshape((y.size,1))
         
+        nnet.train(X[:100,:], y[:100,:], lmbda = 0.01,
+                   epochs = 1500, mini_batch_size = -1,
+                   eta = 3.0, test_data = None, tol = 1e-6)
+        
+        pred = nnet.predict(X) 
+        #print "large_whole: {0}".format(np.mean(pred == y.flatten()))
+        self.assertTrue(np.mean(pred == y.flatten())*100>47)
+  
+    def test_predict_large_input_mini_batch_10(self):
+        seed = 1
+        np.random.seed(seed)
+
+        data = np.loadtxt('test_data/train.csv', skiprows = 1, delimiter = ',')
+        layers = (784,25,10)
+        nnet = nn(layers)
+        
+        X = np.array(data[:300,1:])
+        y = np.array(data[:300,0]).astype(int)
+        y = y.reshape((y.size,1))
+        
+        nnet.train(X[:100,:], y[:100,:], lmbda = 0.01,
+                   epochs = 1500, mini_batch_size = 10,
+                   eta = 3.0, test_data = None, tol = 1e-6)
+        
+        pred = nnet.predict(X) 
+        #print "Large_minibatch: {0}".format(np.mean(pred == y.flatten()))
+        self.assertTrue(np.mean(pred == y.flatten())*100>15)
+  
 ''' utility functions '''
 def debugInitializeWeights(output_size, input_size):
     w = np.zeros((output_size, 1 + input_size))
