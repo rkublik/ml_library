@@ -47,7 +47,7 @@ class neural_net:
         weights = w[0].flatten().reshape(w[0].size,1)
         for i in range(1, len(w)):
             weights = np.vstack((weights, w[i].reshape(w[i].size,1)))
-        return weights
+        return weights.flatten() # so scipy optimizers will work.
 
     
     def cost_function(self, weights, X, y, lmbda):
@@ -143,7 +143,7 @@ class neural_net:
         if test_data:
             n_test = test_data['y'].size
         n = X.shape[0]
-        cost = []
+        self.cost_training = []
         if mini_batch_size < 0:
             mini_batch_size = X.shape[0]
         for j in xrange(epochs):
@@ -153,24 +153,35 @@ class neural_net:
                     idx[k:k+mini_batch_size] 
                     for k in xrange(0, n, mini_batch_size)]
             for mini_batch in mini_batch_idx:
-                ecost = self.update_mini_batch(X[mini_batch,:], y[mini_batch], lmbda, eta)
-            cost.append(ecost)
+                ecost,g = self.update_mini_batch(X[mini_batch,:], y[mini_batch], lmbda, eta)
+            self.cost_training.append(ecost)
             if verbose:
                 if test_data:
                     print "Epoch {0}. cv accuracy: {1}/{2}".format(j, self.evaluate(test_data['X'], test_data['y']), n_test)
                 else:
-                    print "Epoch {0}. Cost Function Value: {1}".format(j, cost[-1])
-            if len(cost) > 1 and abs(cost[-1] - cost[-2])<tol:
+                    print "Epoch {0}. Cost Function Value: {1}".format(j, self.cost_training[-1])
+            if np.max(np.abs(g))<tol:
                 break
-        self.cost_training = cost
                 
     def update_mini_batch(self, X, y, lmbda, eta):
         weights = self.unroll(self.weights)
         J,g = self.cost_function(weights, X, y, lmbda)
         weights = weights - eta * g
         self.weights = self.roll(weights)
-        return J
+        return J,g
 
+    def train_optimize(self, X,y, lmbda, init_weights=None, method = "CG",
+                       opts = None):
+        if init_weights is None:
+            init_weights = self.weights
+            
+        init_weights = self.unroll(init_weights)
+            
+        res = optimize.minimize(lambda W: self.cost_function(W,X,y,lmbda), 
+                                jac = True, x0 = init_weights,
+                                method = method,
+                                options = opts)
+        self.weights = self.roll(res.x)
         
     def train(self, X, y, lmbda = 0.1, epochs = 1500, 
               mini_batch_size = 10, eta = 0.50, tol = 1e-6,
@@ -182,7 +193,6 @@ class neural_net:
        
         self.stochastic_gradient_descent(X, y, lmbda, epochs, mini_batch_size, 
                                          eta, tol, test_data, verbose)
-        
         
     def predict(self, X):
         """ return the index of the output layer with the largest value """
