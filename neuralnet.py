@@ -128,6 +128,7 @@ class neural_net:
 
     def stochastic_gradient_descent(self, X, y, lmbda = 0.1, epochs = 1500, 
                                     mini_batch_size = 10, eta = 0.50, tol = 1e-6,
+                                    adaptive_eta = True,
                                     test_data = None, verbose = False):
         ''' train neural network using mini-batch stochastic gradient descent.
         Adapted from : http://neuralnetworksanddeeplearning.com/chap1.html
@@ -155,6 +156,8 @@ class neural_net:
             for mini_batch in mini_batch_idx:
                 ecost,g = self.update_mini_batch(X[mini_batch,:], y[mini_batch], lmbda, eta)
             self.cost_training.append(ecost)
+            if adaptive_eta and len(self.cost_training) > 2 and self.cost_training[-1] > self.cost_training[-2] + tol:
+                eta = eta*0.95
             if verbose:
                 if test_data:
                     print "Epoch {0}. cv accuracy: {1}/{2}".format(j, self.evaluate(test_data['X'], test_data['y']), n_test)
@@ -184,7 +187,7 @@ class neural_net:
         self.weights = self.roll(res.x)
         
     def train(self, X, y, lmbda = 0.1, epochs = 1500, 
-              mini_batch_size = 10, eta = 0.50, tol = 1e-6,
+              mini_batch_size = 10, eta = 0.50, adaptive_eta = True, tol = 1e-6,
               test_data = None, verbose = False):
         # init_weights = self.unroll(self.weights)
         # 
@@ -192,7 +195,8 @@ class neural_net:
         # self.weights = self.roll(params)
        
         self.stochastic_gradient_descent(X, y, lmbda, epochs, mini_batch_size, 
-                                         eta, tol, test_data, verbose)
+                                         eta, tol, adaptive_eta, test_data, 
+                                         verbose)
         
     def predict(self, X):
         """ return the index of the output layer with the largest value """

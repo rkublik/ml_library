@@ -192,11 +192,29 @@ class PredictionTestCases(unittest.TestCase):
         y = data['y'][idx]
         nnet.train(X, y, lmbda = 0.01,
                    epochs = 150, mini_batch_size = 10,
-                   eta = 3.0, test_data = None, tol = 1e-6)
+                   eta = 3.0, adaptive_eta = False, test_data = None, tol = 1e-6)
         pred = nnet.predict(data['X'])
         #print "ML_whole: {0}".format(np.mean(pred == data['y'].flatten()))
         self.assertTrue(np.mean(pred == data['y'].flatten())*100>73)
         
+        
+    def test_predict_ML_whole_set_adaptive_eta(self):
+        seed = 1
+        np.random.seed(seed)
+        data = sio.loadmat('test_data/ex4data1.mat')
+        data['y'] = data['y']-1 # convert to index starting at 0.
+        layers = (400,25,10)
+        nnet = nn(layers)
+        idx = range(data['X'].shape[0])
+        idx = np.random.choice(idx, size = 100, replace = False)
+        X = data['X'][idx,:]
+        y = data['y'][idx]
+        nnet.train(X, y, lmbda = 0.01,
+                   epochs = 150, mini_batch_size = 10,
+                   eta = 3.0, adaptive_eta = True, test_data = None, tol = 1e-6)
+        pred = nnet.predict(data['X'])
+        #print "ML_whole_adaptive: {0}".format(np.mean(pred == data['y'].flatten()))
+        self.assertTrue(np.mean(pred == data['y'].flatten())*100>73)
     def test_predict_ML_mini_batch_10(self):
         seed = 1
         np.random.seed(seed)
@@ -211,7 +229,7 @@ class PredictionTestCases(unittest.TestCase):
         y = data['y'][idx]
         nnet.train(X, y, lmbda = 0.01,
                    epochs = 150, mini_batch_size = 10,
-                   eta = 3.0, test_data = None, tol = 1e-6)
+                   eta = 3.0, adaptive_eta = False, test_data = None, tol = 1e-6)
         pred = nnet.predict(data['X'])
 
         #print "ML_minibatch 10: {0}".format(np.mean(pred == data['y'].flatten()))
@@ -233,7 +251,7 @@ class PredictionTestCases(unittest.TestCase):
         y = data['y'][idx]
         nnet.train(X, y, lmbda = 0.01,
                    epochs = 150, mini_batch_size = -1,
-                   eta = 3.0, test_data = None, tol = 1e-6)
+                   eta = 3.0, adaptive_eta = False, test_data = None, tol = 1e-6)
         pred = nnet.predict(data['X'])
         #print "ML_whole 2 hidden layers: {0}".format(np.mean(pred == data['y'].flatten()))
 
@@ -253,7 +271,7 @@ class PredictionTestCases(unittest.TestCase):
         
         nnet.train(X[:100,:], y[:100,:], lmbda = 0.01,
                    epochs = 1500, mini_batch_size = -1,
-                   eta = 3.0, test_data = None, tol = 1e-6)
+                   eta = 3.0, adaptive_eta = False, test_data = None, tol = 1e-6)
         
         pred = nnet.predict(X) 
         #print "large_whole: {0}".format(np.mean(pred == y.flatten()))
@@ -273,7 +291,7 @@ class PredictionTestCases(unittest.TestCase):
         
         nnet.train(X[:100,:], y[:100,:], lmbda = 0.01,
                    epochs = 1500, mini_batch_size = 10,
-                   eta = 3.0, test_data = None, tol = 1e-6)
+                   eta = 3.0, adaptive_eta = False, test_data = None, tol = 1e-6)
         
         pred = nnet.predict(X) 
         #print "Large_minibatch: {0}".format(np.mean(pred == y.flatten()))
